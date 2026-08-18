@@ -1,0 +1,226 @@
+<!-- Forward Look v2 - structured horizon timeline (alternative visualization) -->
+<!-- Open in Chrome/Edge. Hover/click a milestone card to focus it. -->
+<meta charset="utf-8">
+<title>Forward Look — Roadmap (v2)</title>
+<style>
+  :root{
+    --ink:#0f2743; --ink2:#3a5a7d; --blue:#1f6fd6; --blue-d:#0e4aa0; --teal:#00b3a4;
+    --orange:#ff694a; --gold:#f5a623; --bg1:#eaf3fc; --bg2:#dbeafc;
+    --now:#1f6fd6; --next:#00b3a4; --future:#ff694a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;font-family:'Segoe UI',Roboto,Arial,sans-serif;background:#fff}
+  .wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;
+        background:radial-gradient(1200px 700px at 30% 0%, #f4f9ff 0%, #eaf3fc 45%, #dcecfb 100%)}
+  .stage{position:relative;width:1280px;height:720px;border-radius:22px;overflow:hidden;
+         background:linear-gradient(160deg,var(--bg1) 0%,var(--bg2) 100%);
+         box-shadow:0 24px 60px rgba(16,60,110,.20), inset 0 0 0 1px rgba(255,255,255,.6)}
+  .stage::before{content:"";position:absolute;inset:0;opacity:.5;
+     background-image:linear-gradient(rgba(120,170,220,.10) 1px,transparent 1px),
+                      linear-gradient(90deg,rgba(120,170,220,.10) 1px,transparent 1px);
+     background-size:34px 34px;pointer-events:none}
+
+  header{position:absolute;top:24px;left:34px;right:34px;display:flex;justify-content:space-between;align-items:flex-start;z-index:6}
+  h1{font-size:27px;font-weight:800;color:var(--ink);letter-spacing:.2px}
+  h1 span{color:var(--blue)}
+  .sub{font-size:13.5px;color:var(--ink2);margin-top:4px;font-weight:600;max-width:940px}
+  .pill{background:#fff;border:1px solid #cfe0f4;border-radius:999px;padding:7px 14px;font-size:12px;
+        font-weight:700;color:var(--blue-d);box-shadow:0 4px 14px rgba(30,111,214,.12);white-space:nowrap}
+
+  .zone{position:absolute;top:170px;height:446px;border-radius:14px;z-index:1}
+  .zlbl{position:absolute;top:120px;z-index:2;font-weight:800}
+  .zlbl .big{font-size:13px;letter-spacing:1.4px}
+  .zlbl .sm{font-size:11px;color:var(--ink2);font-weight:700;margin-top:2px}
+  .zmotif{position:absolute;top:12px;left:50%;transform:translateX(-50%);opacity:.14;pointer-events:none}
+  .zmotif svg{display:block}
+
+  svg.track{position:absolute;inset:0;width:100%;height:100%;z-index:2}
+
+  /* milestone cards */
+  .mcard{position:absolute;width:158px;transform:translateX(-50%);background:#fff;border-radius:12px;
+     border:1px solid #e2edf9;box-shadow:0 8px 20px rgba(20,60,110,.10);padding:9px 11px;z-index:5;
+     cursor:pointer;transition:transform .16s, box-shadow .16s, opacity .2s}
+  .mcard:hover{box-shadow:0 14px 28px rgba(20,60,110,.2)}
+  .mcard .mhead{display:flex;align-items:center;gap:8px;margin-bottom:2px}
+  .mcard .mi{width:26px;height:26px;flex:0 0 26px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+     background:color-mix(in srgb,var(--c) 13%,#fff);color:var(--c)}
+  .mcard .mi svg{width:16px;height:16px;display:block}
+  .mcard .chip{display:inline-block;font-size:10px;font-weight:800;color:#fff;padding:2px 9px;border-radius:999px;background:var(--c)}
+  .mcard .it{font-size:11.5px;font-weight:700;color:var(--ink);line-height:1.32;margin-top:3px}
+  .mcard.here{border-color:var(--c);box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 30%,#fff),0 10px 24px rgba(20,60,110,.18)}
+  .stage[data-focus] .mcard:not(.active){opacity:.4;filter:saturate(.4)}
+
+  /* we are here */
+  .here{position:absolute;z-index:6;transform:translateX(-50%);pointer-events:none}
+  .here .tag{background:var(--now);color:#fff;font-size:10.5px;font-weight:800;padding:3px 11px;border-radius:999px;
+     box-shadow:0 6px 14px rgba(31,111,214,.4);white-space:nowrap;position:relative}
+  .here .tag::before{content:"";position:absolute;left:50%;top:-5px;transform:translateX(-50%);
+     border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:6px solid var(--now)}
+  .ring{position:absolute;z-index:4;transform:translate(-50%,-50%);border-radius:50%;
+     border:2px solid var(--now);animation:ping 1.8s ease-out infinite}
+  @keyframes ping{0%{width:22px;height:22px;opacity:.9}100%{width:60px;height:60px;opacity:0}}
+
+  /* north star */
+  .star{position:absolute;z-index:5;transform:translate(-50%,-50%);text-align:center}
+  .star svg{filter:drop-shadow(0 0 10px rgba(245,166,35,.75));animation:tw 2.4s ease-in-out infinite}
+  @keyframes tw{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+
+  .vision{position:absolute;z-index:6;right:34px;bottom:60px;width:290px;background:#fff;border-radius:14px;
+     border:1px solid #ffd9cf;box-shadow:0 14px 34px rgba(255,105,74,.2);padding:14px 16px}
+  .vision .k{font-size:10px;font-weight:800;letter-spacing:1.4px;color:var(--orange)}
+  .vision .v{font-size:13.5px;font-weight:800;color:var(--ink);margin-top:7px;line-height:1.35}
+  .vision .ai{display:flex;gap:7px;align-items:flex-start;margin-top:9px;padding-top:9px;border-top:1px dashed #ffd9cf;
+     font-size:11px;font-weight:700;color:var(--ink2);line-height:1.35}
+  .vision .ai .g{flex:0 0 16px;color:var(--orange);margin-top:1px}
+  .vision .ai .g svg{width:16px;height:16px;display:block}
+  .vision .ai b{color:var(--ink);font-weight:800}
+
+  footer{position:absolute;bottom:16px;left:34px;right:34px;display:flex;justify-content:space-between;align-items:center;z-index:6}
+  .legend{display:flex;gap:16px;font-size:11px;color:var(--ink2);font-weight:700;align-items:center}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .brand{font-size:10.5px;color:#9ab4d4;font-weight:700}
+</style>
+
+<div class="wrap">
+  <div class="stage">
+    <header>
+      <div>
+        <h1>Forward Look <span>— our roadmap to the North Star</span></h1>
+        <div class="sub">From cloud foundations to governed, self-serve analytics — one platform on Google Cloud that positions us for what's next.</div>
+      </div>
+      <div class="pill">Indicative timeline · 2026 → 2027+</div>
+    </header>
+
+    <svg class="track" viewBox="0 0 1280 720" preserveAspectRatio="none">
+      <!-- spine base -->
+      <line x1="70" y1="392" x2="704" y2="392" stroke="#1f6fd6" stroke-width="8" stroke-linecap="round"/>
+      <line x1="700" y1="392" x2="1002" y2="392" stroke="#00b3a4" stroke-width="8" stroke-linecap="round"/>
+      <line x1="1000" y1="392" x2="1150" y2="392" stroke="#ff694a" stroke-width="8" stroke-linecap="round"/>
+      <line x1="1148" y1="392" x2="1186" y2="392" stroke="#ff694a" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 6"/>
+      <!-- progress-to-now overlay -->
+      <line x1="70" y1="392" x2="490" y2="392" stroke="#0e4aa0" stroke-width="8" stroke-linecap="round" opacity=".28"/>
+      <path id="leaders" stroke="#b9d2ee" stroke-width="1.5" fill="none"/>
+      <g id="dots"></g>
+    </svg>
+
+    <div id="layer"></div>
+
+    <div class="vision">
+      <div class="k">★ NORTH STAR — FUTURE STATE</div>
+      <div class="v">A governed, cloud-native platform powering trusted, self-serve analytics.</div>
+      <div class="ai"><span class="g"><svg viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2.2"/><path d="M10 7V4.2M14 7V4.2M10 17v2.8M14 17v2.8M7 10H4.2M7 14H4.2M17 10h2.8M17 14h2.8"/></g><rect x="10.4" y="10.4" width="3.2" height="3.2" rx="0.7" fill="currentColor"/></svg></span><span><b>AI-ready by design</b> — trusted, governed data as the foundation for AI/ML.</span></div>
+    </div>
+
+    <footer>
+      <div class="legend">
+        <span><i style="background:#1f6fd6"></i>Now · 2026</span>
+        <span><i style="background:#00b3a4"></i>Next · 2027</span>
+        <span><i style="background:#ff694a"></i>Future · 2027+</span>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<script>
+(function(){
+  var C={now:'#1f6fd6', next:'#00b3a4', future:'#ff694a'};
+  var ICONS={
+    flag:'<svg viewBox="0 0 24 24"><path d="M6 21V4M6 4h11l-2.5 3L17 10H6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    check:'<svg viewBox="0 0 24 24"><path d="M20 7L10 17l-5-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    layers:'<svg viewBox="0 0 24 24"><path d="M12 3l8 4-8 4-8-4 8-4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 12l8 4 8-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    shield:'<svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    cloud:'<svg viewBox="0 0 24 24"><path d="M7 18a4 4 0 010-8 5 5 0 019.6-1.3A3.5 3.5 0 0117 18H7z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>',
+    chart:'<svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="7" y="12" width="3" height="5" fill="currentColor"/><rect x="12" y="9" width="3" height="8" fill="currentColor"/><rect x="17" y="6" width="3" height="11" fill="currentColor"/></svg>',
+    spark:'<svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z" fill="currentColor"/></svg>',
+    ai:'<svg viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2.2"/><path d="M10 7V4.2M14 7V4.2M10 17v2.8M14 17v2.8M7 10H4.2M7 14H4.2M17 10h2.8M17 14h2.8"/></g><rect x="10.4" y="10.4" width="3.2" height="3.2" rx="0.7" fill="currentColor"/></svg>'
+  };
+  var SPINE=392;
+  var N=[
+    {x:120, hz:'now', dt:'End-Jan 2026', side:'below', icon:'flag', items:['Google Cloud Kick-Off']},
+    {x:238, hz:'now', dt:'Q1 2026', side:'above', icon:'check', items:['Pre-Evaluation','Onboarding Approval']},
+    {x:362, hz:'now', dt:'Q2 2026', side:'below', icon:'search', items:['Discovery','Landing Zone Provision','Design','Data Pipeline PoC']},
+    {x:490, hz:'now', dt:'Q3 2026', side:'above', here:true, icon:'layers', items:['Group Arch. Approval','E2E Data Pipeline MVP']},
+    {x:620, hz:'now', dt:'Q4 2026', side:'below', icon:'shield', items:['SDA Approval','UAT Provision']},
+    {x:792, hz:'next', dt:'H1 2027', side:'above', icon:'cloud', items:['Go-Live on GCP']},
+    {x:916, hz:'next', dt:'H2 2027', side:'below', icon:'chart', items:['Looker MVP','On-Prem Decom']},
+    {x:1086,hz:'future', dt:'2027+', side:'above', icon:'ai', items:['Looker Go-Live','Live Streaming','AI/ML']},
+  ];
+  var STAR={x:1200,y:392};
+  var stage=document.querySelector('.stage');
+  var layer=document.getElementById('layer');
+
+  // zones + banners
+  var zones=[
+    {x:64,w:642,c:C.now,big:'NOW · 2026',sm:'Build the Foundation',motif:'<svg width="180" height="110" viewBox="0 0 180 110" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="18" y="74" width="44" height="26" rx="4"/><rect x="68" y="74" width="44" height="26" rx="4"/><rect x="118" y="74" width="44" height="26" rx="4"/><rect x="43" y="44" width="44" height="26" rx="4"/><rect x="93" y="44" width="44" height="26" rx="4"/><rect x="68" y="14" width="44" height="26" rx="4"/></svg>'},
+    {x:710,w:290,c:C.next,big:'NEXT · 2027',sm:'Go-Live & On-Prem Decom',motif:'<svg width="180" height="120" viewBox="0 0 180 120" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M52 66a20 20 0 010-40 26 26 0 0149-7A18 18 0 01118 66H52z"/><path d="M90 110V78M78 90l12-12 12 12"/></svg>'},
+    {x:1004,w:236,c:C.future,big:'FUTURE · 2027+',sm:'Cloud Native BI, Streaming & AI/ML',motif:'<svg width="160" height="120" viewBox="0 0 160 120" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="80" cy="60" r="10"/><ellipse cx="80" cy="60" rx="50" ry="24"/><ellipse cx="80" cy="60" rx="50" ry="24" transform="rotate(60 80 60)"/><ellipse cx="80" cy="60" rx="50" ry="24" transform="rotate(120 80 60)"/><circle cx="130" cy="60" r="4" fill="currentColor"/><circle cx="52" cy="40" r="4" fill="currentColor"/><circle cx="58" cy="84" r="4" fill="currentColor"/></svg>'},
+  ];
+  zones.forEach(function(z){
+    var d=document.createElement('div'); d.className='zone';
+    d.style.left=z.x+'px'; d.style.width=z.w+'px';
+    d.style.background='color-mix(in srgb,'+z.c+' 6%, transparent)';
+    stage.appendChild(d);
+    if(z.motif){var mo=document.createElement('div');mo.className='zmotif';mo.style.color=z.c;mo.innerHTML=z.motif;d.appendChild(mo);}
+    var l=document.createElement('div'); l.className='zlbl'; l.style.left=(z.x+16)+'px';
+    l.innerHTML='<div class="big" style="color:'+z.c+'">'+z.big+'</div><div class="sm">'+z.sm+'</div>';
+    stage.appendChild(l);
+  });
+
+  // leaders + dots
+  var svgns='http://www.w3.org/2000/svg';
+  var dotsG=document.getElementById('dots'); var ld='';
+  N.forEach(function(n){
+    var c=C[n.hz];
+    if(n.side==='above'){ ld+='M '+n.x+','+(SPINE-4)+' L '+n.x+','+369+' '; }
+    else { ld+='M '+n.x+','+(SPINE+4)+' L '+n.x+','+415+' '; }
+    var dot=document.createElementNS(svgns,'circle');
+    dot.setAttribute('cx',n.x); dot.setAttribute('cy',SPINE);
+    dot.setAttribute('r', n.here?7.5:6); dot.setAttribute('fill',c);
+    dot.setAttribute('stroke','#fff'); dot.setAttribute('stroke-width','2.5');
+    dotsG.appendChild(dot);
+  });
+  document.getElementById('leaders').setAttribute('d',ld);
+
+  // cards
+  N.forEach(function(n){
+    var c=C[n.hz];
+    var card=document.createElement('div');
+    card.className='mcard'+(n.here?' here':''); card.dataset.id=n.dt;
+    card.style.left=n.x+'px'; card.style.setProperty('--c',c);
+    if(n.side==='above'){ card.style.bottom=(720-368)+'px'; } else { card.style.top='416px'; }
+    var html='<div class="mhead"><span class="mi">'+(ICONS[n.icon]||'')+'</span><span class="chip">'+n.dt+'</span></div>';
+    n.items.forEach(function(it){ html+='<div class="it">'+it+'</div>'; });
+    card.innerHTML=html; layer.appendChild(card);
+  });
+
+  // we are here
+  var q3=N.filter(function(n){return n.here;})[0];
+  var ring=document.createElement('div'); ring.className='ring';
+  ring.style.left=q3.x+'px'; ring.style.top=SPINE+'px'; layer.appendChild(ring);
+  var hh=document.createElement('div'); hh.className='here';
+  hh.style.left=q3.x+'px'; hh.style.top=(SPINE+16)+'px';
+  var _m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],_d=new Date();
+  hh.innerHTML='<div class="tag">◆ We are here · '+_m[_d.getMonth()]+' '+_d.getFullYear()+'</div>';
+  layer.appendChild(hh);
+
+  // north star
+  var st=document.createElement('div'); st.className='star';
+  st.style.left=STAR.x+'px'; st.style.top=STAR.y+'px';
+  st.innerHTML='<svg width="50" height="50" viewBox="0 0 24 24"><path fill="#f5a623" d="M12 1.6l2.7 5.9 6.3.6-4.8 4.2 1.5 6.2L12 17.8 6.3 18.7l1.5-6.2L3 8.1l6.3-.6z"/></svg>';
+  layer.appendChild(st);
+
+  // focus interaction
+  var cards=[].slice.call(document.querySelectorAll('.mcard'));
+  var locked=null;
+  function focus(card){ stage.setAttribute('data-focus','1'); cards.forEach(function(e){e.classList.toggle('active',e===card);}); }
+  function clear(){ stage.removeAttribute('data-focus'); cards.forEach(function(e){e.classList.remove('active');}); }
+  cards.forEach(function(card){
+    card.addEventListener('mouseenter',function(){ if(!locked) focus(card); });
+    card.addEventListener('mouseleave',function(){ if(!locked) clear(); });
+    card.addEventListener('click',function(e){ e.stopPropagation();
+      if(locked===card){ locked=null; clear(); } else { locked=card; focus(card); } });
+  });
+  stage.addEventListener('click',function(){ if(locked){ locked=null; clear(); } });
+})();
+</script>
